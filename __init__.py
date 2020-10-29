@@ -4,17 +4,6 @@ from rclpy.node import Node
 
 from std_msgs.msg import String
 
-class MarcoChessVoice(MycroftSkill):
-    def __init__(self):
-        MycroftSkill.__init__(self)
-        self.log.info('** init **')
-        Listener = Listener()
-        self.log.info(Listener.get())
-
-    @intent_file_handler('voice.chess.marco.intent')
-    def handle_voice_chess_marco(self, message):
-        self.speak_dialog('voice.chess.marco')
-
 class Listener(Node):
 
     def __init__(self):
@@ -39,6 +28,17 @@ def main(args=None):
 
     node.destroy_node()
     rclpy.shutdown()
+
+class MarcoChessVoice(MycroftSkill):
+    def __init__(self):
+        MycroftSkill.__init__(self)
+        self.log.info('** init **')
+        Listener = Listener()
+        self.log.info(Listener.get())
+
+    @intent_file_handler('voice.chess.marco.intent')
+    def handle_voice_chess_marco(self, message):
+        self.speak_dialog('voice.chess.marco')
 
 
 def create_skill():
