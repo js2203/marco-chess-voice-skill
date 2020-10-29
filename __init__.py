@@ -25,7 +25,7 @@ class Listener(Node):
     def chatter_callback(self, msg):
         self.data = msg.data
 
-    def get(self)
+    def get(self):
         return self.data
 
 def main(args=None):
