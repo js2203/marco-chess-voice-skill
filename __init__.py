@@ -7,7 +7,9 @@ from std_msgs.msg import String
 class MarcoChessVoice(MycroftSkill):
     def __init__(self):
         MycroftSkill.__init__(self)
-        main()
+        self.log.info('** init **')
+        Listener = Listener()
+        self.log.info(Listener.get())
 
     @intent_file_handler('voice.chess.marco.intent')
     def handle_voice_chess_marco(self, message):
@@ -17,10 +19,14 @@ class Listener(Node):
 
     def __init__(self):
         super().__init__('listener')
+        self.data = ''
         self.sub = self.create_subscription(String, 'chatter', self.chatter_callback, 10)
 
     def chatter_callback(self, msg):
-        self.get_logger().info('I heard: [%s]' % msg.data)
+        self.data = msg.data
+
+    def get()
+        return self.data
 
 def main(args=None):
     rclpy.init(args=args)
