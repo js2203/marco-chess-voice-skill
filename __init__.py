@@ -32,7 +32,8 @@ def main(args=None):
 class MarcoChessVoice(MycroftSkill):
     def __init__(self):
         MycroftSkill.__init__(self)
-        self.log.info('** init **')
+        rclpy.init(args=args)
+        self.log.info('*********** init ************')
         self.Listen = Listener()
         self.log.info(self.Listen.get())
 
