@@ -33,8 +33,8 @@ class MarcoChessVoice(MycroftSkill):
     def __init__(self):
         MycroftSkill.__init__(self)
         self.log.info('** init **')
-        Listener = Listener()
-        self.log.info(Listener.get())
+        self.Listen = Listener()
+        self.log.info(self.Listen.get())
 
     @intent_file_handler('voice.chess.marco.intent')
     def handle_voice_chess_marco(self, message):
