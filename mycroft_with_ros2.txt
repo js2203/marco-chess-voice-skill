@@ -1,0 +1,10 @@
+For Service and Client:
+
+1. make new msg and srv with C++ (new package)
+	https://index.ros.org/doc/ros2/Tutorials/Custom-ROS2-Interfaces/
+
+2. from install folder (new package, after building), copy bin + lib (+include?) folder and paste it into the main ros folder
+
+3. source main ros folder
+
+4. should work as in new .py files as import (e.g. from tutorial_interfaces.srv import AddThreeInts)
