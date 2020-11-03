@@ -1,0 +1,15 @@
+source;share\string_interface\hook\cmake_prefix_path.ps1
+source;share\string_interface\hook\cmake_prefix_path.bat
+source;share\string_interface\hook\cmake_prefix_path.dsv
+source;share\string_interface\hook\path_dll.ps1
+source;share\string_interface\hook\path_dll.bat
+source;share\string_interface\hook\path_dll.dsv
+source;share\string_interface\hook\path.ps1
+source;share\string_interface\hook\path.bat
+source;share\string_interface\hook\path.dsv
+source;share\string_interface\hook\pythonpath.ps1
+source;share\string_interface\hook\pythonpath.bat
+source;share\string_interface\hook\pythonpath.dsv
+source;share/string_interface/local_setup.bat
+source;share/string_interface/local_setup.dsv
+source;share/string_interface/local_setup.ps1
