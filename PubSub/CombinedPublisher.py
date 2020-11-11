@@ -1,4 +1,3 @@
-import asyncio
 import os
 import threading
 import tensorflow as tf
@@ -55,56 +54,66 @@ class webcam_detection():
 
     def emotion_detection(self):
 
-        cap = cv2.VideoCapture(0)
+        # emotions sorted alphabetically to fit the output of Emotion CNN
+        emotions = sorted(['Neutral', 'Happiness', 'Sadness', 'Surprise',
+                           'Fear', 'Disgust', 'Anger', 'Contempt'])
 
-        names = ['Neutral', 'Happiness', 'Sadness', 'Surprise', 'Fear',
-                 'Disgust', 'Anger', 'Contempt']
-        emotions = sorted(names)
-
+        # collect Names of trained Identities
         classes = []
         for name in glob('../FaceDetection/src/people/train/*'):
             classes.append(os.path.basename(name))
         identities = sorted(classes)
 
-        # launch web cam
+        # launch web cam (0 for windows, 2 for ubuntu laptop)
         video_capture = cv2.VideoCapture(0)
 
+        # classifier used in the cv2 face detection
         classifier = cv2.CascadeClassifier(
             './haarcascade_frontalface_default.xml')
 
-        exit = False
-        while not exit:
+        # continuous collection of images from the webcam
+        while True:
+
             _, frame = video_capture.read()
 
             faces = classifier.detectMultiScale(
                 frame,
-                scaleFactor=1.2,
+                scaleFactor=1.1,
                 minNeighbors=4,
                 minSize=(100, 100),
                 flags=cv2.CASCADE_SCALE_IMAGE)
 
+            # if no face is detected, skip the model prediction
             if faces == ():
                 self.predicted_emotion = 'NoFace'
                 pass
             else:
+                # construct a rectangle around the face for visualization
                 for (x, y, w, h) in faces:
                     cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 255),
                                   2)
-                faces_only = normalize_faces(frame, faces)
-                for face in faces_only:
-                    image = Image.fromarray(face, 'RGB')
 
+                # cut the face from frame and resize it
+                faces_only = normalize_faces(frame, faces)
+
+                for face in faces_only:
+                    # cv2 uses BGR and both CNN need RGB and a 4 dim array
+                    image = Image.fromarray(face, 'RGB')
                     image_array = np.array(image, dtype=np.float32)
                     image_array = np.expand_dims(image_array, axis=0)
 
+                    # both CNN require a certain input
                     emotion_array = image_array / 127.5
                     emotion_array -= 1.
                     identity_array = image_array / 255
 
+                    # predict the emotion and identity
                     emotion_predictions = self.emotion_model(emotion_array)
                     identity_predictions = self.identity_model.predict(
                         identity_array)
 
+                # only if the prediction is above a certain threshold,
+                # the identity is used
                 if identity_predictions[0][np.argmax(
                         identity_predictions)] > 10.0:
                     self.predicted_identity = identities[np.argmax(
@@ -112,9 +121,9 @@ class webcam_detection():
                 else:
                     self.predicted_identity = 'unknown Face'
 
-                self.predicted_emotion = names[np.argmax(emotion_predictions)]
+                self.predicted_emotion = emotions[np.argmax(emotion_predictions)]
 
-            # web cam params
+            # web cam parameters
             font = cv2.FONT_HERSHEY_SIMPLEX
             bottom_left_corner_of_text = (10, 30)
             font_scale = 1
@@ -128,7 +137,6 @@ class webcam_detection():
                         font_scale,
                         font_color,
                         line_type)
-            # add text on the image
             cv2.putText(frame, self.predicted_identity,
                         (10, 60),
                         font,
@@ -136,9 +144,10 @@ class webcam_detection():
                         font_color,
                         line_type)
 
-            cv2.imshow('frame', frame)
+            # show the webcam input with the rectangle and Text
+            cv2.imshow('Detection', frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
-                exit = True
+                break
 
         cap.release()
         cv2.destroyAllWindows()
