@@ -62,7 +62,8 @@ class webcam_detection():
         classes = []
         for name in glob('../FaceDetection/src/people/train/*'):
             classes.append(os.path.basename(name))
-        identities = sorted(classes)
+        # identities = sorted(classes)
+        identities = sorted(['Jannik','Timo','Luca'])
 
         # launch web cam (0 for windows, 2 for ubuntu laptop)
         video_capture = cv2.VideoCapture(0)
@@ -149,7 +150,7 @@ class webcam_detection():
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
-        cap.release()
+        video_capture.release()
         cv2.destroyAllWindows()
 
 
@@ -175,7 +176,7 @@ class Publisher(Node):
     def __init__(self, outer_instance):
         super().__init__('emotion_publisher')
         self.publisher_ = self.create_publisher(String, 'Emotion', 10)
-        self.publisher_ = self.create_publisher(String, 'Identity', 10)
+        self.identity_publisher = self.create_publisher(String, 'Identity', 10)
         self.outer_instance = outer_instance
         emotion_timer_period = 0.1  # seconds
         identity_timer_period = 0.2  # seconds
@@ -193,7 +194,7 @@ class Publisher(Node):
     def identity_callback(self):
         msg = String()
         msg.data = self.outer_instance.predicted_identity
-        self.publisher_.publish(msg)
+        self.identity_publisher.publish(msg)
         self.get_logger().info('identity_publisher: "%s"' % msg.data)
 
 

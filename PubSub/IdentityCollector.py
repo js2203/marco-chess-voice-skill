@@ -20,16 +20,17 @@ class IdentityCollector(Node):
         self.srv = self.create_service(
             MARCO,
             'MARCO_identity',
-            self.request_current_emotion)
+            self.request_current_identity)
 
         self.subscription
-        self.incoming = 'Nothing'
         self.collection = {}
         self.BackgroundDeletion(self)
 
     def request_current_identity(self, request, response):
-        response.res = max(self.collection, key=self.collection.get)
-
+        try:
+            response.res = max(self.collection, key=self.collection.get)
+        except ValueError:
+            response.res = 'NoFace'
         return response
 
     def listener_callback(self, msg):
@@ -42,10 +43,10 @@ class IdentityCollector(Node):
 
     class BackgroundDeletion(object):
         def __init__(self, outer_instance):
+            self.outer_instance = outer_instance
             thread = threading.Thread(target=self.run, args=())
             thread.daemon = True
             thread.start()
-            self.outer_instance = outer_instance
 
         def run(self):
             asyncio.run(self.clear_dict())

@@ -28,8 +28,10 @@ class EmotionCollector(Node):
         self.BackgroundDeletion(self)
 
     def request_current_emotion(self, request, response):
-        response.res = max(self.collection, key=self.collection.get)
-
+        try:
+            response.res = max(self.collection, key=self.collection.get)
+        except ValueError:
+            response.res = 'neutral'
         return response
 
     def listener_callback(self, msg):
@@ -42,10 +44,10 @@ class EmotionCollector(Node):
 
     class BackgroundDeletion(object):
         def __init__(self, outer_instance):
+            self.outer_instance = outer_instance
             thread = threading.Thread(target=self.run, args=())
             thread.daemon = True
             thread.start()
-            self.outer_instance = outer_instance
 
         def run(self):
             asyncio.run(self.clear_dict())
@@ -53,7 +55,7 @@ class EmotionCollector(Node):
         async def clear_dict(self):
             while True:
                 self.outer_instance.collection = {}
-                await asyncio.sleep(10)
+                await asyncio.sleep(2)
 
 
 def main(args=None):
