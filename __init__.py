@@ -30,12 +30,13 @@ class MarcoChessVoice(MycroftSkill):
                         response = self.client.future.result()
                     except Exception as e:
                         self.log.info('Service call failed {}'.format(e,))
+                        return ''
                     else:
                         self.log.info('Result: {}'.format(response.res))
-                    break
+                        return response.res
         except:
             self.log.info('rclpy not ready')
-        return response.res
+            return ''
 
     @intent_handler(IntentBuilder('Emotion')
                     .require('what')
@@ -94,7 +95,7 @@ class MarcoChessVoice(MycroftSkill):
         async def update_identity(self):
             while True:
                 self.outer_instance.client.request_identity('Current')
-                self.outer_instance.last_emotion = self.outer_instance.ros2_call()
+                self.outer_instance.last_identity = self.outer_instance.ros2_call()
                 await asyncio.sleep(5)
 
     class AsyncEmotionUpdater(object):
