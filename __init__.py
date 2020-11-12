@@ -22,16 +22,19 @@ class MarcoChessVoice(MycroftSkill):
         self.AsyncEmotionUpdater(self)
 
     def ros2_call(self) -> String:
-        while rclpy.ok():
-            rclpy.spin_once(self.client)
-            if self.client.future.done():
-                try:
-                    response = self.client.future.result()
-                except Exception as e:
-                    self.log.info('Service call failed {}'.format(e,))
-                else:
-                    self.log.info('Result: {}'.format(response.res))
-                break
+        try:
+            while rclpy.ok():
+                rclpy.spin_once(self.client)
+                if self.client.future.done():
+                    try:
+                        response = self.client.future.result()
+                    except Exception as e:
+                        self.log.info('Service call failed {}'.format(e,))
+                    else:
+                        self.log.info('Result: {}'.format(response.res))
+                    break
+        except:
+            self.log.info('rclpy not ready')
         return response.res
 
     @intent_handler(IntentBuilder('Emotion')
@@ -39,22 +42,22 @@ class MarcoChessVoice(MycroftSkill):
                     .require('is')
                     .require('my')
                     .require('emotion'))
-    def handle_voice_chess_marco(self, message):
-        self.client.request_emotion('Hello')
+    def current_emotion(self, message):
+        # self.client.request_emotion('Hello')
 
-        response = self.ros2_call()
+        # response = self.ros2_call()
 
-        self.speak('Current Emotion is: {}'.format(response))
+        self.speak('Current Emotion is: {}'.format(self.last_emotion))
 
     @intent_handler(IntentBuilder('Greeting')
                     .require('hello'))
-    def handle_voice_chess_marco(self, message):
+    def current_identity(self, message):
 
-        self.client.request_identity('Current')
+        #self.client.request_identity('Current')
 
-        response = self.ros2_call()
+        # response = self.ros2_call()
 
-        self.speak('Hello {}'.format(response))
+        self.speak('Hello {}'.format(self.last_identity))
 
     class MarcoClientAsync(Node):
 
