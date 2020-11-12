@@ -48,7 +48,8 @@ class MarcoChessVoice(MycroftSkill):
 
         # response = self.ros2_call()
 
-        self.speak('Current Emotion is: {}'.format(self.last_emotion))
+        self.speak_dialog('voice.chess.marco.emotion',
+                          data={'emotion': self.last_emotion})
 
     @intent_handler(IntentBuilder('Greeting')
                     .require('hello'))
@@ -58,7 +59,8 @@ class MarcoChessVoice(MycroftSkill):
 
         # response = self.ros2_call()
 
-        self.speak('Hello {}'.format(self.last_identity))
+        self.speak_dialog('voice.chess.marco',
+                          data={'name': self.last_identity})
 
     class MarcoClientAsync(Node):
 
