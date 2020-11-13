@@ -20,6 +20,7 @@ class MarcoChessVoice(MycroftSkill):
         self.last_identity = ''
         self.AsyncIdentityUpdater(self)
         self.AsyncEmotionUpdater(self)
+        self.AsyncTalker(self)
 
     def ros2_call(self) -> String:
         try:
@@ -44,8 +45,8 @@ class MarcoChessVoice(MycroftSkill):
                     .require('my')
                     .require('emotion'))
     def current_emotion(self, message):
+        
         # self.client.request_emotion('Hello')
-
         # response = self.ros2_call()
 
         self.speak_dialog('voice.chess.marco.emotion',
@@ -55,8 +56,7 @@ class MarcoChessVoice(MycroftSkill):
                     .require('hello'))
     def current_identity(self, message):
 
-        #self.client.request_identity('Current')
-
+        # self.client.request_identity('Current')
         # response = self.ros2_call()
 
         self.speak_dialog('voice.chess.marco',
@@ -115,6 +115,22 @@ class MarcoChessVoice(MycroftSkill):
                 self.outer_instance.client.request_emotion('Current')
                 self.outer_instance.last_emotion = self.outer_instance.ros2_call()
                 await asyncio.sleep(1)
+
+    class AsyncTalker(object):
+        def __init__(self, outer_instance):
+            self.outer_instance = outer_instance
+            thread = threading.Thread(target=self.run, args=())
+            thread.daemon = True
+            thread.start()
+
+        def run(self):
+            asyncio.run(self.update_emotion())
+
+        async def update_emotion(self):
+            while True:
+                await asyncio.sleep(120)
+                self.outer_instance.speak(
+                    f'Why are you {self.outer_instance.last_emotion}?')
 
 
 def create_skill():
