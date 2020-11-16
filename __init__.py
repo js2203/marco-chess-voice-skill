@@ -1,5 +1,6 @@
 import asyncio
 import threading
+import sys
 
 from mycroft import MycroftSkill, intent_file_handler, intent_handler
 from adapt.intent import IntentBuilder
@@ -68,9 +69,7 @@ class MarcoChessVoice(MycroftSkill):
         self.speak_dialog('voice.chess.marco',
                           data={'name': self.last_identity})
 
-    @intent_handler(IntentBuilder('moveFigure')
-                    .require('move')
-                    .require('moveRx'))
+    @intent_handler('voice.chess.marco.moveFigure.intent')
     def move_figure(self, message):
         start = message.data.get('start')
         end = message.data.get('end')
