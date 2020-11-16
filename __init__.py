@@ -29,28 +29,12 @@ class MarcoChessVoice(MycroftSkill):
         self.AsyncTalker(self)
 
         # init the stockfish chess engine
+        self.active_game = False
         self.stockfish = Stockfish(
             "",
             parameters={'Threads': 16,
                         'Write Debug Log': True})
         self.move_list = []
-
-    def ros2_call(self) -> String:
-        try:
-            while rclpy.ok():
-                rclpy.spin_once(self.client)
-                if self.client.future.done():
-                    try:
-                        response = self.client.future.result()
-                    except Exception as e:
-                        self.log.info('Service call failed {}'.format(e, ))
-                        return ''
-                    else:
-                        self.log.info('Result: {}'.format(response.res))
-                        return response.res
-        except:
-            self.log.info('rclpy not ready')
-            return ''
 
     @intent_handler(IntentBuilder('Emotion')
                     .require('what')
@@ -69,26 +53,76 @@ class MarcoChessVoice(MycroftSkill):
         self.speak_dialog('voice.chess.marco',
                           data={'name': self.last_identity})
 
+    @intent_handler(IntentBuilder('Greeting')
+                    .require('hello'))
+    def current_identity(self, message):
+
+        self.speak_dialog('voice.chess.marco',
+                          data={'name': self.last_identity})
+
+    @intent_handler('voice.chess.marco.starGame.intent')
+    def start_chess_game(self, message):
+        self.active_game = True
+        player_start = self.ask_yesno('voice.chess.marco.askStart',
+                                      data={'name': self.last_identity})
+        if player_start == 'no':
+            self.speak('Ok, I will start')
+            first_move = self.stockfish.get_best_move()
+            self.move_list.append(first_move)
+            self.speak(f'I moved {first_move[:2]} to {first_move[2:]}')
+            self.stockfish.set_position(self.move_list)
+        else:
+            self.speak('Ok, you will start.')
+
     @intent_handler('voice.chess.marco.moveFigure.intent')
     def move_figure(self, message):
-        start = message.data.get('start')
-        end = message.data.get('end')
-        move = start + end
-        if self.stockfish.is_move_correct(move):
-            self.move_list.append(move)
-            self.stockfish.set_position(self.move_list)
+        if self.active_game:
+            start = message.data.get('start')
+            end = message.data.get('end')
+            move = start + end
+            if self.stockfish.is_move_correct(move):
+                self.move_list.append(move)
+                self.stockfish.set_position(self.move_list)
 
-            self.speak_dialog('voice.chess.marco.moveFigure',
-                              data={'start': start,
-                                    'end': end})
+                self.speak_dialog('voice.chess.marco.moveFigure',
+                                  data={'start': start,
+                                        'end': end})
+
+                marco_move = self.stockfish.get_best_move_time(10000)
+                self.move_list.append(marco_move)
+                self.speak(f'I moved {marco_move[:2]} to {marco_move[2:]}')
+                self.stockfish.set_position(self.move_list)
+
+            else:
+                self.speak('This is an invalid move')
         else:
-            self.spreak('This is an invalid move')
+            self.speak('We are currently not playing chess')
 
     @intent_handler(IntentBuilder('getBoard')
                     .require('show')
                     .require('board'))
     def get_board(self, message):
-        self.log.info(self.stockfish.get_board_visual())
+        if self.active_game:
+            self.log.info(self.stockfish.get_board_visual())
+        else:
+            self.speak('We are currently not playing chess')
+
+    def ros2_call(self) -> String:
+        try:
+            while rclpy.ok():
+                rclpy.spin_once(self.client)
+                if self.client.future.done():
+                    try:
+                        response = self.client.future.result()
+                    except Exception as e:
+                        self.log.info('Service call failed {}'.format(e, ))
+                        return ''
+                    else:
+                        self.log.info('Result: {}'.format(response.res))
+                        return response.res
+        except:
+            self.log.info('rclpy not ready')
+            return ''
 
     class MarcoClientAsync(Node):
 
