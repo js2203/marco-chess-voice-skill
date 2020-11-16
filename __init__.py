@@ -9,6 +9,9 @@ from rclpy.node import Node
 from string_interface.srv import MARCO
 from std_msgs.msg import String
 
+sys.path.insert(0, './stockfish/')
+from stockfishEngine import Stockfish
+
 
 class MarcoChessVoice(MycroftSkill):
     def __init__(self):
@@ -18,9 +21,17 @@ class MarcoChessVoice(MycroftSkill):
         self.client = self.MarcoClientAsync()
         self.last_emotion = ''
         self.last_identity = ''
+
+        # init the background functions
         self.AsyncIdentityUpdater(self)
         self.AsyncEmotionUpdater(self)
         self.AsyncTalker(self)
+
+        # init the stockfish chess engine
+        self.stockfish = Stockfish(
+            "",
+            parameters={'Threads': 16,
+                        'Write Debug Log': True})
 
     def ros2_call(self) -> String:
         try:
@@ -30,7 +41,7 @@ class MarcoChessVoice(MycroftSkill):
                     try:
                         response = self.client.future.result()
                     except Exception as e:
-                        self.log.info('Service call failed {}'.format(e,))
+                        self.log.info('Service call failed {}'.format(e, ))
                         return ''
                     else:
                         self.log.info('Result: {}'.format(response.res))
@@ -45,9 +56,6 @@ class MarcoChessVoice(MycroftSkill):
                     .require('my')
                     .require('emotion'))
     def current_emotion(self, message):
-        
-        # self.client.request_emotion('Hello')
-        # response = self.ros2_call()
 
         self.speak_dialog('voice.chess.marco.emotion',
                           data={'emotion': self.last_emotion})
@@ -56,11 +64,19 @@ class MarcoChessVoice(MycroftSkill):
                     .require('hello'))
     def current_identity(self, message):
 
-        # self.client.request_identity('Current')
-        # response = self.ros2_call()
-
         self.speak_dialog('voice.chess.marco',
                           data={'name': self.last_identity})
+
+    @intent_handler(IntentBuilder('moveFigure')
+                    .require('move')
+                    .require('moveRx'))
+    def move_figure(self, message):
+        start = message.data.get('start')
+        end = message.data.get('end')
+
+        self.speak_dialog('voice.chess.marco.moveFigure',
+                          data={'start': start,
+                                'end': end})
 
     class MarcoClientAsync(Node):
 
@@ -135,4 +151,3 @@ class MarcoChessVoice(MycroftSkill):
 
 def create_skill():
     return MarcoChessVoice()
-
