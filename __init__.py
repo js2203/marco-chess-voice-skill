@@ -32,6 +32,7 @@ class MarcoChessVoice(MycroftSkill):
             "",
             parameters={'Threads': 16,
                         'Write Debug Log': True})
+        self.move_list = []
 
     def ros2_call(self) -> String:
         try:
@@ -73,10 +74,16 @@ class MarcoChessVoice(MycroftSkill):
     def move_figure(self, message):
         start = message.data.get('start')
         end = message.data.get('end')
+        move = start + end
+        if self.stockfish.is_move_correct(move):
+            self.move_list.append(move)
+            self.stockfish.set_position(self.move_list)
 
-        self.speak_dialog('voice.chess.marco.moveFigure',
-                          data={'start': start,
-                                'end': end})
+            self.speak_dialog('voice.chess.marco.moveFigure',
+                              data={'start': start,
+                                    'end': end})
+        else:
+            self.spreak('This is an invalid move')
 
     class MarcoClientAsync(Node):
 
