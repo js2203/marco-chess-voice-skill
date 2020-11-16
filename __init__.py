@@ -85,6 +85,12 @@ class MarcoChessVoice(MycroftSkill):
         else:
             self.spreak('This is an invalid move')
 
+    @intent_handler(IntentBuilder('getBoard')
+                    .require('show')
+                    .require('board'))
+    def get_board(self, message):
+        self.log.info(self.stockfish.get_board_visual())
+
     class MarcoClientAsync(Node):
 
         def __init__(self):
