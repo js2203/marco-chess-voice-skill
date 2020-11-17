@@ -30,8 +30,10 @@ class MarcoChessVoice(MycroftSkill):
 
         # init the stockfish chess engine
         self.active_game = False
+        self.player_started = False
+        self.last_evaluation = 0.0
         self.stockfish = Stockfish(
-            "",
+            "/home/human/Desktop/stockfish12",
             parameters={'Threads': 16,
                         'Write Debug Log': True})
         self.move_list = []
@@ -72,6 +74,7 @@ class MarcoChessVoice(MycroftSkill):
             self.speak(f'I moved {first_move[:2]} to {first_move[2:]}')
             self.stockfish.set_position(self.move_list)
         else:
+            self.player_started = True
             self.speak('Ok, you will start.')
 
     @intent_handler('voice.chess.marco.moveFigure.intent')
@@ -87,6 +90,17 @@ class MarcoChessVoice(MycroftSkill):
                 self.speak_dialog('voice.chess.marco.moveFigure',
                                   data={'start': start,
                                         'end': end})
+                current_evaluation = self.stockfish.get_stockfish_evaluation()
+                if self.player_started:
+                    if self.last_evaluation > current_evaluation:
+                        self.speak('That was a good move')
+                    else:
+                        self.speak('You could do that better')
+                else:
+                    if self.last_evaluation < current_evaluation:
+                        self.speak('That was a good move')
+                    else:
+                        self.speak('You could do that better')
 
                 marco_move = self.stockfish.get_best_move_time(10000)
                 self.move_list.append(marco_move)
