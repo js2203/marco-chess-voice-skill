@@ -11,7 +11,7 @@ from rclpy.node import Node
 from string_interface.srv import MARCO
 from std_msgs.msg import String
 
-sys.path.insert(0, './stockfish/')
+sys.path.insert(0, '/home/human/mycroft-core/skills/marco-chess-voice-skill/stockfish/')
 from stockfishEngine import Stockfish
 
 
