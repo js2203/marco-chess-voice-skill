@@ -3,6 +3,7 @@ import threading
 import sys
 
 from mycroft import MycroftSkill, intent_file_handler, intent_handler
+from mycroft.util import wait_while_speaking
 from adapt.intent import IntentBuilder
 import rclpy
 from rclpy.node import Node
@@ -62,20 +63,24 @@ class MarcoChessVoice(MycroftSkill):
         self.speak_dialog('voice.chess.marco',
                           data={'name': self.last_identity})
 
-    @intent_handler('voice.chess.marco.starGame.intent')
+    @intent_handler('voice.chess.marco.startGame.intent')
     def start_chess_game(self, message):
         self.active_game = True
         player_start = self.ask_yesno('voice.chess.marco.askStart',
                                       data={'name': self.last_identity})
         if player_start == 'no':
-            self.speak('Ok, I will start')
+            self.speak_dialog('voice.chess.marco.start',
+                              data={'name': 'I'})
             first_move = self.stockfish.get_best_move()
             self.move_list.append(first_move)
-            self.speak(f'I moved {first_move[:2]} to {first_move[2:]}')
+            self.speak_dialog('voice.chess.marco.moveFigure',
+                              data={'start': first_move[:2],
+                                    'end': first_move[2:]})
             self.stockfish.set_position(self.move_list)
         else:
             self.player_started = True
-            self.speak('Ok, you will start.')
+            self.speak_dialog('voice.chess.marco.start',
+                              data={'name': 'you'})
 
     @intent_handler('voice.chess.marco.moveFigure.intent')
     def move_figure(self, message):
@@ -90,21 +95,30 @@ class MarcoChessVoice(MycroftSkill):
                 self.speak_dialog('voice.chess.marco.moveFigure',
                                   data={'start': start,
                                         'end': end})
-                current_evaluation = self.stockfish.get_stockfish_evaluation()
+
+                wait_while_speaking()
+
+                current_evaluation = float(
+                    self.stockfish.get_stockfish_evaluation())
+
                 if self.player_started:
                     if self.last_evaluation > current_evaluation:
-                        self.speak('That was a good move')
+                        self.speak_dialog(
+                            f'voice.chess.marco.emotion.{self.last_emotion}.good')
                     else:
-                        self.speak('You could do that better')
+                        self.speak_dialog('voice.chess.marco.badMove')
                 else:
                     if self.last_evaluation < current_evaluation:
-                        self.speak('That was a good move')
+                        self.speak_dialog(
+                            f'voice.chess.marco.emotion.{self.last_emotion}.good')
                     else:
-                        self.speak('You could do that better')
+                        self.speak_dialog('voice.chess.marco.badMove')
 
                 marco_move = self.stockfish.get_best_move_time(10000)
                 self.move_list.append(marco_move)
-                self.speak(f'I moved {marco_move[:2]} to {marco_move[2:]}')
+                self.speak_dialog('voice.chess.marco.moveFigure',
+                                  data={'start': marco_move[:2],
+                                        'end': marco_move[2:]})
                 self.stockfish.set_position(self.move_list)
 
             else:
