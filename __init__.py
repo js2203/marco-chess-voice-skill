@@ -10,8 +10,7 @@ from rclpy.node import Node
 from string_interface.srv import MARCO
 from std_msgs.msg import String
 
-sys.path.insert(0,
-                '/home/human/mycroft-core/skills/marco-chess-voice-skill/stockfish/')
+sys.path.insert(0, '/home/human/mycroft-core/skills/marco-chess-voice-skill/stockfish/')
 from stockfishEngine import Stockfish
 
 
@@ -93,19 +92,16 @@ class MarcoChessVoice(MycroftSkill):
                 current_evaluation = float(
                     self.stockfish.get_stockfish_evaluation())
 
+                g_move = f'voice.chess.marco.emotion.{self.last_emotion}.good'
                 if self.player_started:
                     if self.last_evaluation > current_evaluation:
-                        self.speak_dialog(
-                            f'voice.chess.marco.emotion.{self.last_emotion}.good',
-                            wait=True)
+                        self.speak_dialog(g_move, wait=True)
                     else:
                         self.speak_dialog('voice.chess.marco.badMove',
                                           wait=True)
                 else:
                     if self.last_evaluation < current_evaluation:
-                        self.speak_dialog(
-                            f'voice.chess.marco.emotion.{self.last_emotion}.good',
-                            wait=True)
+                        self.speak_dialog(g_move, wait=True)
                     else:
                         self.speak_dialog('voice.chess.marco.badMove',
                                           wait=True)
