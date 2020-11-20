@@ -10,7 +10,8 @@ from rclpy.node import Node
 from string_interface.srv import MARCO
 from std_msgs.msg import String
 
-sys.path.insert(0, '/home/human/mycroft-core/skills/marco-chess-voice-skill/stockfish/')
+sys.path.insert(0,
+                '/home/human/mycroft-core/skills/marco-chess-voice-skill/stockfish/')
 from stockfishEngine import Stockfish
 
 
@@ -46,14 +47,16 @@ class MarcoChessVoice(MycroftSkill):
     def current_emotion(self, message):
 
         self.speak_dialog('voice.chess.marco.emotion',
-                          data={'emotion': self.last_emotion})
+                          data={'emotion': self.last_emotion},
+                          wait=True)
 
     @intent_handler(IntentBuilder('Greeting')
                     .require('hello'))
     def current_identity(self, message):
 
         self.speak_dialog('voice.chess.marco',
-                          data={'name': self.last_identity})
+                          data={'name': self.last_identity},
+                          wait=True)
 
     @intent_handler('voice.chess.marco.startGame.intent')
     def start_chess_game(self, message):
@@ -68,12 +71,14 @@ class MarcoChessVoice(MycroftSkill):
             self.move_list.append(first_move)
             self.speak_dialog('voice.chess.marco.moveFigure',
                               data={'start': first_move[:2],
-                                    'end': first_move[2:]})
+                                    'end': first_move[2:]},
+                              wait=True)
             self.stockfish.set_position(self.move_list)
         else:
             self.player_started = True
             self.speak_dialog('voice.chess.marco.start',
-                              data={'name': 'you'})
+                              data={'name': 'you'},
+                              wait=True)
 
     @intent_handler('voice.chess.marco.moveFigure.intent')
     def move_figure(self, message):
@@ -114,9 +119,11 @@ class MarcoChessVoice(MycroftSkill):
                 self.stockfish.set_position(self.move_list)
 
             else:
-                self.speak('This is an invalid move')
+                self.speak('This is an invalid move',
+                           wait=True)
         else:
-            self.speak('We are currently not playing chess')
+            self.speak('We are currently not playing chess',
+                       wait=True)
 
     @intent_handler(IntentBuilder('getBoard')
                     .require('show')
@@ -125,7 +132,8 @@ class MarcoChessVoice(MycroftSkill):
         if self.active_game:
             self.log.info(self.stockfish.get_board_visual())
         else:
-            self.speak('We are currently not playing chess')
+            self.speak('We are currently not playing chess',
+                       wait=True)
 
     def ros2_call(self) -> String:
         try:
@@ -169,6 +177,7 @@ class MarcoChessVoice(MycroftSkill):
     class AsyncIdentityUpdater(object):
         def __init__(self, outer_instance):
             self.outer_instance = outer_instance
+            self.no_face = True
             thread = threading.Thread(target=self.run, args=())
             thread.daemon = True
             thread.start()
@@ -179,7 +188,21 @@ class MarcoChessVoice(MycroftSkill):
         async def update_identity(self):
             while True:
                 self.outer_instance.client.request_identity('Current')
-                self.outer_instance.last_identity = self.outer_instance.ros2_call()
+                current_identity = self.outer_instance.ros2_call()
+
+                # if no face is detected and the previous face check was also
+                # false, tell the user that he is not visible
+                if current_identity == 'NoFace' and self.no_face:
+                    self.outer_instance.speak('I can not see you',
+                                              wait=True)
+                    
+                # if no face is detected and there is a previous face detected,
+                # use that face again remember that no face was detected
+                elif current_identity == 'noFace' and not self.no_face:
+                    self.no_face = True
+                else:
+                    self.outer_instance.last_identity = current_identity
+                    self.no_face = False
                 await asyncio.sleep(5)
 
     class AsyncEmotionUpdater(object):
@@ -206,13 +229,14 @@ class MarcoChessVoice(MycroftSkill):
             thread.start()
 
         def run(self):
-            asyncio.run(self.update_emotion())
+            asyncio.run(self.talker())
 
-        async def update_emotion(self):
+        async def talker(self):
             while True:
                 await asyncio.sleep(120)
-                self.outer_instance.speak(
-                    f'Why are you {self.outer_instance.last_emotion}?')
+                converse = f'voice.emotion.marco.converse.{self.last_emotion}'
+                self.outer_instance.speak_dialog(converse,
+                                                 wait=True)
 
 
 def create_skill():
