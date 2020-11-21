@@ -234,7 +234,7 @@ class MarcoChessVoice(MycroftSkill):
         async def talker(self):
             while True:
                 await asyncio.sleep(120)
-                converse = f'voice.emotion.marco.converse.{self.outer_instance.last_emotion} '
+                converse = f'voice.emotion.marco.converse.{self.outer_instance.last_emotion}'
                 self.outer_instance.speak_dialog(converse,
                                                  wait=True)
 
