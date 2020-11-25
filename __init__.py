@@ -126,7 +126,8 @@ class MarcoChessVoice(MycroftSkill):
                     self.move_list.append(marco_move)
                     self.speak_dialog('voice.chess.marco.moveFigure',
                                       data={'start': marco_move[:2],
-                                            'end': marco_move[2:]})
+                                            'end': marco_move[2:]},
+                                      wait=True)
                     self.stockfish.set_position(self.move_list)
                     # sleep for 2 second after the move to wait for emotions
                     time.sleep(2)
@@ -271,7 +272,8 @@ class MarcoChessVoice(MycroftSkill):
                     if self.outer_instance.converse:
                         converse = f'voice.emotion.marco.converse.{self.outer_instance.last_emotion}'
                         self.outer_instance.speak_dialog(converse,
-                                                         data={'name': self.outer_instance.last_identity},
+                                                         data={
+                                                             'name': self.outer_instance.last_identity},
                                                          wait=True)
                         break
 
