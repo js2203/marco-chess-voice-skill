@@ -225,7 +225,7 @@ class MarcoChessVoice(MycroftSkill):
                 # if no face is detected and the previous face check was also
                 # false, tell the user that he is not visible
                 if current_identity == 'NoFace' and self.no_face:
-                    self.outer_instance.speak('I can not see you',
+                    self.outer_instance.speak('Ich kann dich gerade nicht sehen',
                                               wait=True)
 
                 # if no face is detected and there is a previous face detected,
