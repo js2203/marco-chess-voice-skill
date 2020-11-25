@@ -1,0 +1,1 @@
+.* (move/ change) (?P<start>.*) to (?P<end>)
