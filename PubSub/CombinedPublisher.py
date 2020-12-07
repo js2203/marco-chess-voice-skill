@@ -63,7 +63,7 @@ class webcam_detection():
         for name in glob('../FaceDetection/src/people/train/*'):
             classes.append(os.path.basename(name))
         # identities = sorted(classes)
-        identities = sorted(['Jannik','Timo','Luca'])
+        identities = sorted(['Jannik','Timo', 'Niklas'])
 
         # launch web cam (0 for windows, 2 for ubuntu laptop)
         video_capture = cv2.VideoCapture(0)
@@ -87,6 +87,7 @@ class webcam_detection():
             # if no face is detected, skip the model prediction
             if faces == ():
                 self.predicted_emotion = 'NoFace'
+                self.predicted_identity = 'NoFace'
                 pass
             else:
                 # construct a rectangle around the face for visualization
@@ -106,7 +107,9 @@ class webcam_detection():
                     # both CNN require a certain input
                     emotion_array = image_array / 127.5
                     emotion_array -= 1.
-                    identity_array = image_array / 255
+                    # identity_array = image_array / 255
+                    identity_array = image_array / 127.5
+                    identity_array -= 1.
 
                     # predict the emotion and identity
                     emotion_predictions = self.emotion_model(emotion_array)
@@ -116,11 +119,9 @@ class webcam_detection():
                 # only if the prediction is above a certain threshold,
                 # the identity is used
                 if identity_predictions[0][np.argmax(
-                        identity_predictions)] > 10.0:
+                        identity_predictions)] > 1.0:
                     self.predicted_identity = identities[np.argmax(
                         identity_predictions)]
-                else:
-                    self.predicted_identity = 'unknown Face'
 
                 self.predicted_emotion = emotions[np.argmax(emotion_predictions)]
 
@@ -134,6 +135,7 @@ class webcam_detection():
             # add text on the image
             cv2.putText(frame, self.predicted_emotion,
                         bottom_left_corner_of_text,
+
                         font,
                         font_scale,
                         font_color,
@@ -189,18 +191,16 @@ class Publisher(Node):
         msg = String()
         msg.data = self.outer_instance.predicted_emotion
         self.publisher_.publish(msg)
-        self.get_logger().info('emotion_publisher: "%s"' % msg.data)
 
     def identity_callback(self):
         msg = String()
         msg.data = self.outer_instance.predicted_identity
         self.identity_publisher.publish(msg)
-        self.get_logger().info('identity_publisher: "%s"' % msg.data)
 
 
 if __name__ == '__main__':
-    Detector = webcam_detection(
-        'C:\\Users\\janni\\Desktop\\class_weight_affectnet_aug_sub8_jannik_2020-11-05_21-58',
-        'C:\\Users\\janni\\Desktop\\BA\\BA_src\\FaceDetection\\src\weights\\vgg16_linear_11-06-2020-17_04.h5')
+    Detector = webcam_detection(        
+    	'/home/human/Desktop/class_weight_affectnet_aug_sub8_jannik_2020-11-05_21-58',
+        '/home/human/Desktop/resnetv2_linear_11-20-2020-14_17')
     BackgroundPublisher(Detector, Publisher)
     Detector.emotion_detection()
