@@ -65,6 +65,8 @@ class MarcoChessVoice(MycroftSkill):
         self.converse = False
         if not self.active_game:
             self.active_game = True
+            # set difficulty of the chess engine
+            self.stockfish.set_skill_level(15)
             player_start = self.ask_yesno('voice.chess.marco.askStart',
                                           data={'name': self.last_identity})
             if player_start == 'no':
