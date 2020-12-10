@@ -108,6 +108,8 @@ class MarcoChessVoice(MycroftSkill):
                 current_evaluation = float(
                     self.stockfish.get_stockfish_evaluation())
 
+                time.sleep(2)
+
                 good_move = f'voice.chess.marco.emotion.{self.last_emotion}.goodMove'
                 bad_move = f'voice.chess.marco.emotion.{self.last_emotion}.badMove'
                 if self.player_started:
@@ -138,7 +140,7 @@ class MarcoChessVoice(MycroftSkill):
                                       wait=True)
                     self.stockfish.set_position(self.move_list)
                     # sleep for 2 second after the move to wait for emotions
-                    time.sleep(2)
+                    time.sleep(3)
                     own_move = f'voice.chess.marco.emotion.{self.last_emotion}.ownTurn'
                     self.speak_dialog(own_move,
                                       data={'name': self.last_identity},
